@@ -19,12 +19,17 @@ struct ContentView: View {
     // Hold a list of favourite jokes
     @State var favourites: [DadJoke] = [] // Empty list
     
+    // This will let us know whether the current joke has been added to the list
+    @State var currentJokeAddedToFavourites: Bool = false
+    
     // MARK: Computed properties
     var body: some View {
         VStack {
             
             Text(currentJoke.joke)
                 .font(.title)
+                // Shrinks text to at most half it's original size (to make it fit)
+                .minimumScaleFactor(0.5)
                 .multilineTextAlignment(.leading)
                 .padding(30)
                 .overlay(
@@ -35,9 +40,19 @@ struct ContentView: View {
             
             Image(systemName: "heart.circle")
                 .font(.largeTitle)
+                // Make the inage red when the current joke is favourite
+                .foregroundColor(currentJokeAddedToFavourites == true ? .red : .secondary)
                 .onTapGesture {
-                    // Add the current joke to the list
-                    favourites.append(currentJoke)
+                    
+                    // Only when the joke does not already exist, add it
+                    if currentJokeAddedToFavourites == false {
+                        // Add the current joke to the list
+                        favourites.append(currentJoke)
+                        
+                        // Keep track of the fact that the joke is now a favourite
+                        currentJokeAddedToFavourites = true
+                    }
+                    
                 }
             
             Button(action: {
@@ -124,6 +139,10 @@ struct ContentView: View {
             //                                         |
             //                                         V
             currentJoke = try JSONDecoder().decode(DadJoke.self, from: data)
+            
+            // If we got here, a new joke has been set
+            // So, we must reset the flag to track whether the current joke is a favourite
+            currentJokeAddedToFavourites = false
             
         } catch {
             print("Could not retrieve or decode the JSON from endpoint.")
